@@ -2,7 +2,7 @@
 con<-url("http://kodu.ut.ee/~avork/files/oppetoo/micro/piaacHW2PII.Rdata")
 load(con) #Load the data
 summary(dfr)
-
+--summary
 
 library("nnet") 
 mlogit.modell<- multinom(jobsat ~ ageg5lfs + male + edcat7 + immig + indep + workreq + relwage + geo, data = dfr, Hess=TRUE)
