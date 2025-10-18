@@ -1,8 +1,12 @@
-
+#1. Data Loading and Summary
 con<-url("http://kodu.ut.ee/~avork/files/oppetoo/micro/piaacHW2PII.Rdata")
 load(con) #Load the data
 summary(dfr)
---summary
+#The dataset (dfr) is loaded directly from a public URL and summarized to understand variable structure and content.
+
+#2. Multinomial Logistic Regression
+#A multinomial logistic regression model is estimated to identify how independent variables affect the probability of job satisfaction categories:
+#Not satisfied (reference group), Neutral, Satisfied,Very satisfied
 
 library("nnet") 
 mlogit.modell<- multinom(jobsat ~ ageg5lfs + male + edcat7 + immig + indep + workreq + relwage + geo, data = dfr, Hess=TRUE)
@@ -25,18 +29,16 @@ table(dfr$jobsat)
 
 #people in japan have lower prob compare to estonia to satisfies: very satisfied
 
-
-#b)  Calculate relative risk ratios
+3. Relative Risk Ratios (RRR)
 
 exp(coef(mlogit.modell))
-
 
 #age 20-24 have 0.94 times lower RRR than aged 25-29 to be neutral compate to ninsatisfied
 #male have 0.68 times lower RRR than female (or 1-0.68=0.32 0r 32 % lower relative risk) to be neurtal compare to non satisfied
 
+#4. Independence of Irrelevant Alternatives (IIA) Test
+#Test if the assumptions of IIA are satisfied. For this you need to use package mlogit.
 
-
-#c) Test if the assumptions of IIA are satisfied. For this you need to use package mlogit.
 library(mlogit)
 dfrmlogit <- mlogit.data(dfr, varying = NULL,  shape = "wide", choice = "jobsat")
 
@@ -60,8 +62,8 @@ hmftest(mlogit.modell, mlogit.modell.nochoice1)
 mlogit.modell.nochoice4 <- mlogit(jobsat ~ 0 | ageg5lfs + male + edcat7 + immig + indep + workreq + relwage + geo, data=dfrmlogit, reflevel = "NotSatisfied",  alt.subset=c("NotSatisfied", "Neutral", "Satisfied"))
 hmftest(mlogit.modell, mlogit.modell.nochoice4)
 
-
-#d) Can we merge options 1 and 2 ("NotSatisfied", "Neutral") using Wald test?
+#5. Wald Test for Category Merging
+#Can we merge options 1 and 2 ("NotSatisfied", "Neutral") using Wald test?
   library(aod)
 wald.test(b = coef(mlogit.modell),  #coefficients from the model
           Sigma = vcov(mlogit.modell),  #covariance matrix from the model
@@ -70,8 +72,8 @@ wald.test(b = coef(mlogit.modell),  #coefficients from the model
 
 #p<0.05  jecet null hp  so we cannot merge
 
-#e)marginal effect
-
+#6. Marginal Effects
+#To measure how a unit change in predictors affects job satisfaction probabilities, marginal effects are computed:
 library(fastDummies)
 
 dfd2 <- fastDummies::dummy_cols(dfr, select_columns = c("ageg5lfs", "edcat7", "geo", "workreq"), 
@@ -104,5 +106,6 @@ ME.mnl <- sapply(c.names, function(x)
   stats::effects(mlogit.modell2, covariate=x, data=dfdlongg),  #command "effects" calculates effect of changes
   simplify=FALSE)
 round((AME.mnl <- t(sapply(ME.mnl, colMeans))),4)
+
 
 
